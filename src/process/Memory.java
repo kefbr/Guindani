@@ -1,4 +1,4 @@
-package processo;
+package process;
 
 public class Memory {
     int total;

@@ -1,4 +1,4 @@
-package processo;
+package process;
 
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
@@ -9,7 +9,7 @@ public class Main {
 	public static void main(String[] args) throws FileNotFoundException {
 		Scanner scan = new Scanner(System.in);
 
-		ArrayList<Process> entryRow = Utils.initializeEntry("entrada.txt");
+		ArrayList<Process> entryRow = Utils.initializeEntry("entry.txt");
 
 		ArrayList<Process> realTimeProcessRow = new ArrayList<Process>();
 		ArrayList<Process> userProcessRow = new ArrayList<Process>();
@@ -44,9 +44,8 @@ public class Main {
 						blockedProcessRow, blockedSuspendedProcessRow, memory);
 			}
 
-			// rodadaDeEscalonadorCurto(so.tempoSistema, memoria, so.gerenciadorIO,
-			// processosBloqueados, processosProntos, processosExecutando,
-			// processosFinalizados, so.cpus)
+			SchedulerLow.run(os.systemTime, memory, os.resourceManager, blockedProcessRow, readyProcessRow,
+					runningProcessList, finalizedProcessList, os.cpus);
 
 			scan.nextLine();
 
@@ -56,6 +55,8 @@ public class Main {
 			// processosBloqueadosSuspenso, processosFinalizados)
 			os.passesTime();
 		}
+
+		scan.close();
 	}
 
 }

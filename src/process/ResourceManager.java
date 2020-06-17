@@ -1,4 +1,4 @@
-package processo;
+package process;
 
 public class ResourceManager {
 
@@ -11,6 +11,7 @@ public class ResourceManager {
 
     public ResourceManager() {
         this.printer1 = new Resource();
+        this.printer2 = new Resource();
         this.cd1 = new Resource();
         this.cd2 = new Resource();
         this.scanner = new Resource();
@@ -29,7 +30,7 @@ public class ResourceManager {
         return amount;
     }
 
-    public void allocatePrinter(int processId, int numberToAllocate) {
+    public void allocatePrinter(final int processId, final int numberToAllocate) {
         if (numberToAllocate == 1) {
             if (this.printer1.isAvailable())
                 this.printer1.use((processId));
@@ -54,7 +55,7 @@ public class ResourceManager {
         return amount;
     }
 
-    public void allocateCD(int processId, int numberToAllocate) {
+    public void allocateCD(final int processId, final int numberToAllocate) {
         if (numberToAllocate == 1) {
             if (this.cd1.isAvailable())
                 this.cd1.use((processId));
@@ -71,7 +72,7 @@ public class ResourceManager {
         return this.scanner.isAvailable();
     }
 
-    public void allocateScanner(int processId, int numberToAllocate) {
+    public void allocateScanner(final int processId, final int numberToAllocate) {
         if (numberToAllocate == 1 && this.scanner.isAvailable())
             this.scanner.use(processId);
     }
@@ -80,23 +81,23 @@ public class ResourceManager {
         return this.modem.isAvailable();
     }
 
-    public void allocateModem(int processId, int numberToAllocate) {
+    public void allocateModem(final int processId, final int numberToAllocate) {
         if (numberToAllocate == 1 && this.modem.isAvailable())
             this.modem.use(processId);
     }
 
     public void updateUsageTime() {
-        if (this.printer1.blockedProcess())
+        if (this.printer1.blockedProcess)
             this.printer1.decreaseUsageTime();
-        if (this.printer2.blockedProcess())
+        if (this.printer2.blockedProcess)
             this.printer2.decreaseUsageTime();
-        if (this.cd1.blockedProcess())
+        if (this.cd1.blockedProcess)
             this.cd1.decreaseUsageTime();
-        if (this.cd2.blockedProcess())
+        if (this.cd2.blockedProcess)
             this.cd2.decreaseUsageTime();
-        if (this.scanner.blockedProcess())
+        if (this.scanner.blockedProcess)
             this.scanner.decreaseUsageTime();
-        if (this.modem.blockedProcess())
+        if (this.modem.blockedProcess)
             this.modem.decreaseUsageTime();
     }
 

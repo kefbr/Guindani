@@ -1,4 +1,4 @@
-package processo;
+package process;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -10,12 +10,12 @@ public class Utils {
 	public static ArrayList<Process> initializeEntry(String fileName) throws FileNotFoundException {
 		int id = 0;
 
-		Scanner entryFile = new Scanner(new FileReader("lista.txt"));
+		Scanner entryFile = new Scanner(new FileReader(fileName));
 
 		ArrayList<Process> entryRow = new ArrayList<Process>();
 
 		while (entryFile.hasNextLine()) {
-			String[] processArray = entryFile.nextLine().split(",");
+			String[] processArray = entryFile.nextLine().split(", ");
 
 			Process newProcess = new Process(id, Integer.parseInt(processArray[0]), Integer.parseInt(processArray[1]),
 					Integer.parseInt(processArray[2]), Integer.parseInt(processArray[3]),

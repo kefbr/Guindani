@@ -1,16 +1,12 @@
-package processo;
+package process;
 
 public class Resource {
-    boolean inUse;
-    int usageTime;
-    int processId;
+    boolean inUse = false;
+    int usageTime = 3;
+    int processId = 0;
     boolean blockedProcess = false;
 
     public Resource() {
-        this.inUse = false;
-        this.usageTime = 3;
-        this.processId = 0;
-        this.blockedProcess = false;
     }
 
     public boolean isAvailable() {
@@ -34,10 +30,6 @@ public class Resource {
     public void use(int processId) {
         this.inUse = true;
         this.processId = processId;
-    }
-
-    public boolean blockedProcess(){
-return this.blockedProcess;
     }
 
 }

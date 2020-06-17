@@ -1,4 +1,4 @@
-package processo;
+package process;
 
 public class CPU {
     Process process;
