@@ -11,6 +11,5 @@ public class Memory {
 
     public void printMemory() {
         System.out.println("\nMEMORIA:\n\n" + "USADO: " + (this.total - this.available) + "/" + this.total);
-
     }
 }

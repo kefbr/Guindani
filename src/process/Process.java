@@ -2,13 +2,13 @@ package process;
 
 import java.util.ArrayList;
 
-public class Process {
+public class Process implements java.lang.Comparable<Process> {
 	int id;
-	ArrayList<Resource> resources;
+	ArrayList<Resource> resourceList;
 	int arrivalTime;
 	int priority;
 	int processTime;
-	int memoryUse;
+	int memoryAmount;
 	int printerAmount;
 	int cdAmount;
 	int scannerAmount;
@@ -22,9 +22,11 @@ public class Process {
 			int scannerAmount, int modemAmount, int cdAmount) {
 		this.id = id;
 		this.arrivalTime = arrivalTime;
+		this.timeLeft = processTime;
+		this.resourceList = new ArrayList<Resource>();
 		this.priority = priority;
 		this.processTime = processTime;
-		this.memoryUse = memoryUse;
+		this.memoryAmount = memoryUse;
 		this.printerAmount = printerAmount;
 		this.cdAmount = cdAmount;
 		this.scannerAmount = scannerAmount;
@@ -44,6 +46,14 @@ public class Process {
 				}
 		}
 		processList.add(this);
+	}
+
+	@Override
+	public int compareTo(Process o) {
+		if (this.arrivalTime != o.arrivalTime) {
+			return this.arrivalTime - o.arrivalTime;
+		} else
+			return this.priority - o.priority;
 	}
 
 }

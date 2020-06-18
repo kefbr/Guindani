@@ -21,6 +21,7 @@ public class Resource {
         this.inUse = false;
         this.usageTime = 3;
         this.processId = 0;
+        this.blockedProcess = false;
     }
 
     public int getUsageTime() {
@@ -30,6 +31,7 @@ public class Resource {
     public void use(int processId) {
         this.inUse = true;
         this.processId = processId;
+        this.blockedProcess = true;
     }
 
 }
