@@ -1,5 +1,7 @@
 package process;
 
+import java.util.ArrayList;
+
 public class ResourceManager {
 
     Resource printer1;
@@ -30,17 +32,36 @@ public class ResourceManager {
         return amount;
     }
 
-    public void allocatePrinter(final int processId, final int numberToAllocate) {
+    public ArrayList<Resource> allocateResources(int processId, int printers, int scanners, int modems, int cds) {
+        ArrayList<Resource> resourceList = new ArrayList<Resource>();
+        if (printers > 0)
+            System.out.println("Foi alocado " + printers + " Impressora para P" + processId);
+        resourceList.addAll(this.allocatePrinter(processId, printers));
+        if (scanners > 0)
+            System.out.println("Foi alocado " + scanners + " Scanner para P" + processId);
+        resourceList.addAll(this.allocateScanner(processId, scanners));
+        if (modems > 0)
+            System.out.println("Foi alocado " + modems + " Modem para P" + processId);
+        resourceList.addAll(this.allocateModem(processId, modems));
+        if (cds > 0)
+            System.out.println("Foi alocado " + cds + " CD para P" + processId);
+        resourceList.addAll(this.allocateCD(processId, cds));
+        return resourceList;
+    }
+
+    public ArrayList<Resource> allocatePrinter(final int processId, final int numberToAllocate) {
+        ArrayList<Resource> resourceList = new ArrayList<Resource>();
         if (numberToAllocate == 1) {
             if (this.printer1.isAvailable())
-                this.printer1.use((processId));
+                resourceList.add(this.printer1.use(processId));
             else if (this.printer2.isAvailable())
-                this.printer2.use((processId));
+                resourceList.add(this.printer2.use(processId));
         } else if (numberToAllocate == 2)
             if (this.printer1.isAvailable() && this.printer2.isAvailable()) {
-                this.printer1.use(processId);
-                this.printer2.use(processId);
+                resourceList.add(this.printer1.use(processId));
+                resourceList.add(this.printer2.use(processId));
             }
+        return resourceList;
     }
 
     public int availableCDs() {
@@ -55,35 +76,47 @@ public class ResourceManager {
         return amount;
     }
 
-    public void allocateCD(final int processId, final int numberToAllocate) {
+    public ArrayList<Resource> allocateCD(final int processId, final int numberToAllocate) {
+        ArrayList<Resource> resourceList = new ArrayList<Resource>();
         if (numberToAllocate == 1) {
             if (this.cd1.isAvailable())
-                this.cd1.use((processId));
+                resourceList.add(this.cd1.use(processId));
             else if (this.cd2.isAvailable())
-                this.cd2.use((processId));
+                resourceList.add(this.cd2.use(processId));
         } else if (numberToAllocate == 2)
             if (this.cd1.isAvailable() && this.cd2.isAvailable()) {
-                this.cd1.use(processId);
-                this.cd2.use(processId);
+                resourceList.add(this.cd1.use(processId));
+                resourceList.add(this.cd2.use(processId));
             }
+        return resourceList;
     }
 
-    public boolean isScannerAvailable() {
-        return this.scanner.isAvailable();
+    public int availableScanners() {
+        if (this.scanner.isAvailable())
+            return 1;
+        else
+            return 0;
     }
 
-    public void allocateScanner(final int processId, final int numberToAllocate) {
+    public ArrayList<Resource> allocateScanner(final int processId, final int numberToAllocate) {
+        ArrayList<Resource> resourceList = new ArrayList<Resource>();
         if (numberToAllocate == 1 && this.scanner.isAvailable())
-            this.scanner.use(processId);
+            resourceList.add(this.scanner.use(processId));
+        return resourceList;
     }
 
-    public boolean isModemAvailable() {
-        return this.modem.isAvailable();
+    public int availableModems() {
+        if (this.modem.isAvailable())
+            return 1;
+        else
+            return 0;
     }
 
-    public void allocateModem(final int processId, final int numberToAllocate) {
+    public ArrayList<Resource> allocateModem(final int processId, final int numberToAllocate) {
+        ArrayList<Resource> resourceList = new ArrayList<Resource>();
         if (numberToAllocate == 1 && this.modem.isAvailable())
-            this.modem.use(processId);
+            resourceList.add(this.modem.use(processId));
+        return resourceList;
     }
 
     public void updateUsageTime() {

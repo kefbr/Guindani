@@ -8,35 +8,34 @@ public class SchedulerLow {
             ArrayList<Process> blockedProcessRow, ArrayList<Process> blockedSuspendedProcessRow,
             ArrayList<Process> readyProcessRow, ArrayList<Process> readySuspendedProcessRow,
             ArrayList<Process> runningProcessRow, ArrayList<Process> finalizedProcessRow, ArrayList<CPU> cpus, OS os) {
-        moveBlockedToReady(blockedProcessRow, readyProcessRow);
-        checkResources(resourceManager, blockedProcessRow, runningProcessRow, cpus);
         deallocateProcessInCPU(systemTime, memory, cpus, readyProcessRow, runningProcessRow, finalizedProcessRow);
-        if ((readyProcessRow.size() == 0 && readySuspendedProcessRow.size() > 0)
-                || (blockedProcessRow.size() == 0 && blockedSuspendedProcessRow.size() > 0)) {
-            Scheduler.schedulerMidActive(os.resourceManager, readyProcessRow, readySuspendedProcessRow,
+        if (readySuspendedProcessRow.size() > 0 || blockedSuspendedProcessRow.size() > 0) {
+            Scheduler.tryToDetachSuspendedProcesses(os.resourceManager, readyProcessRow, readySuspendedProcessRow,
                     blockedProcessRow, blockedSuspendedProcessRow, memory);
-            checkResources(resourceManager, blockedProcessRow, runningProcessRow, cpus);
         }
+        moveBlockedToReady(blockedProcessRow, readyProcessRow, resourceManager);
         allocateProcessInCPU(cpus, readyProcessRow, runningProcessRow, systemTime);
     }
 
-    private static void moveBlockedToReady(ArrayList<Process> blockedProcessRow, ArrayList<Process> readyProcessRow) {
+    private static void moveBlockedToReady(ArrayList<Process> blockedProcessRow, ArrayList<Process> readyProcessRow,
+            ResourceManager resourceManager) {
 
         int i = 0;
 
         while (blockedProcessRow.size() > i) {
             Process process = blockedProcessRow.get(i);
-            boolean isItReady = true;
 
-            for (Resource resource : process.resourceList)
-                if (resource.getUsageTime() > 0 && resource.processId != 0)
-                    isItReady = false;
+            var printers = resourceManager.availablePrinters();
+            var cds = resourceManager.availableCDs();
+            var scanners = resourceManager.availableScanners();
+            var modems = resourceManager.availableModems();
 
-            if (isItReady) {
-                for (Resource resource : process.resourceList)
-                    resource.free();
-                process.resourceList = new ArrayList<Resource>();
+            if (process.printerAmount <= printers && process.cdAmount <= cds && process.scannerAmount <= scanners
+                    && process.modemAmount <= modems) {
+                System.out.println("P" + process.id + " saiu da FB e entrou na FP");
                 blockedProcessRow.remove(i).insert(readyProcessRow);
+                process.resourceList.addAll(resourceManager.allocateResources(process.id, process.printerAmount,
+                        process.scannerAmount, process.modemAmount, process.cdAmount));
                 i--;
             }
             i++;
@@ -45,6 +44,8 @@ public class SchedulerLow {
 
     private static void allocateProcessInCPU(ArrayList<CPU> cpus, ArrayList<Process> readyProcessRow,
             ArrayList<Process> runningProcessRow, int systemTime) {
+
+        boolean breakLine = false;
 
         for (CPU cpu : cpus) {
             if (cpu.quantum == 0 && readyProcessRow.size() > 0) {
@@ -60,6 +61,11 @@ public class SchedulerLow {
                 }
 
                 cpu.positionList = runningProcessRow.size();
+                if (!breakLine) {
+                    System.out.println("");
+                    breakLine = true;
+                }
+                System.out.println("P" + process.id + " saiu da FP e iniciou execução");
                 runningProcessRow.add(process);
 
                 if (process.initTime == 0)
@@ -68,73 +74,76 @@ public class SchedulerLow {
         }
     }
 
-    private static void checkResources(ResourceManager resourceManager, ArrayList<Process> blockedProcessRow,
-            ArrayList<Process> runningProcessRow, ArrayList<CPU> cpus) {
+    public static void checkResources(ResourceManager resourceManager, ArrayList<Process> blockedProcessRow,
+            ArrayList<Process> blockedSuspendedProcessRow, ArrayList<Process> runningProcessRow,
+            ArrayList<Process> readyProcessRow, ArrayList<Process> readySuspendedProcessRow, ArrayList<CPU> cpus) {
+
+        for (int i = 0; i < readyProcessRow.size(); i++) {
+            Process process = readyProcessRow.get(i);
+            if (process.printerAmount + process.cdAmount + process.scannerAmount + process.modemAmount > 0) {
+                boolean hasEndedResourceTime = false;
+                for (Resource resource : process.resourceList) {
+                    if (resource.usageTime == 0)
+                        hasEndedResourceTime = true;
+                }
+
+                if (!hasEndedResourceTime) {
+                    System.out.println("P" + process.id + " saiu da FP e entrou na FB");
+                    readyProcessRow.remove(i).insert(blockedProcessRow);
+                    System.out.println("P" + process.id + " desalocou os recursos utilizados\n");
+                    for (Resource resource : process.resourceList) {
+                        resource.free();
+                    }
+                    process.resourceList = new ArrayList<Resource>();
+                }
+            }
+        }
+
+        for (int i = 0; i < readySuspendedProcessRow.size(); i++) {
+            Process process = readySuspendedProcessRow.get(i);
+            if (process.printerAmount + process.cdAmount + process.scannerAmount + process.modemAmount > 0) {
+                boolean hasEndedResourceTime = false;
+                for (Resource resource : process.resourceList) {
+                    if (resource.usageTime == 0)
+                        hasEndedResourceTime = true;
+                }
+
+                if (!hasEndedResourceTime) {
+                    System.out.println("P" + process.id + " saiu da FPS e entrou na FBS");
+                    readySuspendedProcessRow.remove(i).insert(blockedSuspendedProcessRow);
+                    System.out.println("P" + process.id + " desalocou os recursos utilizados\n");
+                    for (Resource resource : process.resourceList) {
+                        resource.free();
+                    }
+                    process.resourceList = new ArrayList<Resource>();
+                }
+            }
+        }
 
         for (CPU cpu : cpus) {
             Process process = cpu.process;
             if (process != null
-                    && (process.printerAmount + process.cdAmount + process.scannerAmount + process.modemAmount > 0)) {
-                if (cpu.quantum == 0) {
+                    && process.printerAmount + process.cdAmount + process.scannerAmount + process.modemAmount > 0) {
+                boolean hasEndedResourceTime = false;
+                for (Resource resource : process.resourceList) {
+                    if (resource.usageTime == 0)
+                        hasEndedResourceTime = true;
+                }
+
+                if (hasEndedResourceTime) {
                     runningProcessRow.remove(cpu.positionList).insert(blockedProcessRow);
-                    updateCPU(cpus, cpu.positionList);
-                    if (process.printerAmount > 0
-                            && (!resourceManager.printer1.blockedProcess || !resourceManager.printer2.blockedProcess)) {
-                        if (process.printerAmount == 1) {
-                            if (resourceManager.printer1.processId != process.id) {
-                                process.resourceList.add(resourceManager.printer2);
-                                resourceManager.printer2.blockedProcess = true;
-                                process.printerAmount--;
-                            } else {
-                                process.resourceList.add(resourceManager.printer1);
-                                resourceManager.printer1.blockedProcess = true;
-                                process.printerAmount--;
-                            }
-                        } else if (process.printerAmount == 2 && !resourceManager.printer1.blockedProcess
-                                && !resourceManager.printer2.blockedProcess) {
-                            process.resourceList.add(resourceManager.printer1);
-                            process.resourceList.add(resourceManager.printer2);
-                            resourceManager.printer1.blockedProcess = true;
-                            resourceManager.printer2.blockedProcess = true;
-                            process.printerAmount -= 2;
-                        }
+                    System.out.println("P" + process.id + " parou execução e entrou na FB");
+                    process.timeLeft += cpu.quantum;
+                    updateCPUs(cpus, cpu.positionList);
+                    for (Resource resource : process.resourceList) {
+                        resource.free();
                     }
-                    if (process.cdAmount > 0
-                            && (!resourceManager.cd1.blockedProcess || !resourceManager.cd2.blockedProcess)) {
-                        if (process.cdAmount == 1) {
-                            if (resourceManager.cd1.processId != process.id) {
-                                process.resourceList.add(resourceManager.cd2);
-                                resourceManager.cd2.blockedProcess = true;
-                                process.cdAmount--;
-                            } else {
-                                process.resourceList.add(resourceManager.cd1);
-                                resourceManager.cd1.blockedProcess = true;
-                                process.cdAmount--;
-                            }
-                        } else if (process.cdAmount == 2 && !resourceManager.cd1.blockedProcess
-                                && !resourceManager.cd2.blockedProcess) {
-                            process.resourceList.add(resourceManager.cd1);
-                            process.resourceList.add(resourceManager.cd2);
-                            resourceManager.cd1.blockedProcess = true;
-                            resourceManager.cd2.blockedProcess = true;
-                            process.cdAmount -= 2;
-                        }
-                    }
-                    if (process.scannerAmount > 0 && !resourceManager.scanner.blockedProcess) {
-                        process.resourceList.add(resourceManager.scanner);
-                        resourceManager.scanner.blockedProcess = true;
-                        process.scannerAmount--;
-                    }
-                    if (process.modemAmount > 0 && !resourceManager.modem.blockedProcess) {
-                        process.resourceList.add(resourceManager.modem);
-                        resourceManager.modem.blockedProcess = true;
-                        process.modemAmount--;
-                    }
+                    process.resourceList = new ArrayList<Resource>();
+                    System.out.println("P" + process.id + " desalocou os recursos utilizados\n");
                     cpu.process = null;
                     cpu.quantum = 0;
                 }
             }
-
         }
 
     }
@@ -148,9 +157,16 @@ public class SchedulerLow {
             if (cpu.quantum == 0 && process != null) {
                 if (process.timeLeft == 0) {
                     process.exitTime = systemTime;
+                    System.out.println("P" + process.id + " finalizou execução e entrou na FF");
                     finalizedProcessRow.add(runningProcessRow.remove(cpu.positionList));
-                    updateCPU(cpus, cpu.positionList);
+                    updateCPUs(cpus, cpu.positionList);
+                    System.out.println(
+                            "Foi desalocado " + process.memoryAmount + "MBytes da memória pelo P" + process.id);
                     memory.available += process.memoryAmount;
+                    System.out.println("P" + process.id + " desalocou os recursos utilizados\n");
+                    for (Resource resource : process.resourceList) {
+                        resource.free();
+                    }
                     cpu.process = null;
                     cpu.quantum = 0;
                 } else {
@@ -158,24 +174,17 @@ public class SchedulerLow {
                         process.row = 1;
                     else
                         process.row++;
+                    System.out.println("P" + process.id + " parou execução e entrou na FP");
                     runningProcessRow.remove(cpu.positionList).insert(readyProcessRow);
-                    updateCPU(cpus, cpu.positionList);
+                    updateCPUs(cpus, cpu.positionList);
                     cpu.process = null;
                     cpu.quantum = 0;
                 }
             }
-            if (cpu.quantum == 0 && cpu.process != null && process.row >= 1 && process.timeLeft <= 0) {
-                process.exitTime = systemTime;
-                finalizedProcessRow.add(runningProcessRow.remove(cpu.positionList));
-                updateCPU(cpus, cpu.positionList);
-                memory.available += process.memoryAmount;
-                cpu.process = null;
-                cpu.quantum = 0;
-            }
         }
     }
 
-    public static void updateCPU(ArrayList<CPU> cpus, int i) {
+    public static void updateCPUs(ArrayList<CPU> cpus, int i) {
         for (int j = 0; j < cpus.size(); j++) {
             CPU cpu = cpus.get(j);
             if (cpu.positionList != 0 && cpu.positionList >= i)

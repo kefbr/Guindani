@@ -1,7 +1,6 @@
 package process;
 
 public class Resource {
-    boolean inUse = false;
     int usageTime = 3;
     int processId = 0;
     boolean blockedProcess = false;
@@ -10,7 +9,7 @@ public class Resource {
     }
 
     public boolean isAvailable() {
-        return !this.inUse;
+        return this.processId == 0;
     }
 
     public void decreaseUsageTime() {
@@ -18,7 +17,6 @@ public class Resource {
     }
 
     public void free() {
-        this.inUse = false;
         this.usageTime = 3;
         this.processId = 0;
         this.blockedProcess = false;
@@ -28,10 +26,11 @@ public class Resource {
         return this.usageTime;
     }
 
-    public void use(int processId) {
-        this.inUse = true;
+    public Resource use(int processId) {
         this.processId = processId;
         this.blockedProcess = true;
+        this.usageTime = 3;
+        return this;
     }
 
 }

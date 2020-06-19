@@ -38,39 +38,58 @@ public class Utils {
 
 	public static void printRows(ArrayList<Process> readyProcessRow, ArrayList<Process> readySuspendedProcessRow,
 			ArrayList<Process> blockedProcessRow, ArrayList<Process> blockedSuspendedProcessRow,
-			ArrayList<Process> finalizedProcessRow) {
+			ArrayList<Process> finalizedProcessRow, ArrayList<Process> realtimeProcessRow,
+			ArrayList<Process> userProcessRow, ArrayList<Process> entryRow) {
 		System.out.println("\n FILAS:");
-		System.out.println("\n Novos:");
+		System.out.print("\t FTR: ");
+		for (Process process : realtimeProcessRow) {
+			if (process != null) {
+				System.out.print("P" + process.id + ", ");
+			}
+		}
+		System.out.print("\n\t FU: ");
+		for (Process process : userProcessRow) {
+			if (process != null) {
+				System.out.print("P" + process.id + ", ");
+			}
+		}
 
-		System.out.println("\n Prontos:");
+		System.out.println("\n\n FE:");
+		for (Process process : entryRow) {
+			if (process != null) {
+				System.out.print("P" + process.id + ", ");
+			}
+		}
+
+		System.out.print("\n\n FP:");
 		for (Process process : readyProcessRow) {
 			if (process != null) {
 				System.out.print("P" + process.id + ", ");
 			}
 		}
-		System.out.println("\n Prontos-Suspensos:");
+		System.out.println("\n FPS:");
 		for (Process process : readySuspendedProcessRow) {
 			if (process != null) {
 				System.out.print("P" + process.id + ", ");
 			}
 		}
-		System.out.println("\n Bloqueados:");
+		System.out.print("\n FB:");
 		for (Process process : blockedProcessRow) {
 			if (process != null) {
 				System.out.print("P" + process.id + ", ");
 			}
 		}
-		System.out.println("\n Bloqueado-Suspensos:");
+		System.out.println("\n FBS:");
 		for (Process process : blockedSuspendedProcessRow) {
 			if (process != null) {
 				System.out.print("P" + process.id + ", ");
 			}
 		}
-		System.out.println("\n Finalizados:");
+		System.out.println("\n FF:");
 		for (Process process : finalizedProcessRow) {
 			if (process != null) {
-				System.out.println("P" + process.id + " entrou na cpu em T=" + process.arrivalTime
-						+ " e finalizou em T=" + process.exitTime);
+				System.out.println("P" + process.id + " entrou na cpu em " + process.arrivalTime + "s e finalizou em "
+						+ process.exitTime + "s");
 			}
 		}
 	}

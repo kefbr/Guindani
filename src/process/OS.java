@@ -28,9 +28,7 @@ public class OS {
     public void printSO() {
         System.out.println("\n\nTEMPO DE EXECUCAO: " + this.systemTime);
         System.out.println("\nCPUs:\n");
-        System.out.println("+-------+-------+-------+-------+");
         System.out.println("| CPU 0 | CPU 1 | CPU 2 | CPU 3 |");
-        System.out.println("+-------+-------+-------+-------+");
         System.out.print("|");
         for (int i = 0; i < this.cpus.size(); i++) {
             if (this.cpus.get(i).process != null) {
@@ -40,7 +38,6 @@ public class OS {
             }
             System.out.print("|");
         }
-        System.out.println("\n+-------+-------+-------+-------+");
         System.out.println("\n\nDISPOSITIVOS\t|\tPROCESSO \t|\tTempo Restante\n");
         if (this.resourceManager.printer1.processId == 0)
             System.out.println("Impressora 1\t|\t   --   \t|\t\t" + this.resourceManager.printer1.getUsageTime());
